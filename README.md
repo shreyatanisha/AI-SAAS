@@ -68,6 +68,41 @@ After successfully completing and testing the RAG chatbot, extend the existing a
 
 **Expected Outcome:** The API accepts a user question and returns an AI-generated response through Groq.
 
+#### Basic Q&A API
+
+Install dependencies from the project folder:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Add your Groq API key and model to the `.env` file in the project folder:
+
+```dotenv
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=openai/gpt-oss-20b
+```
+
+Run the app from the project folder:
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+Open `http://127.0.0.1:8000/docs`, choose `POST /chat`, and try this request:
+
+```json
+{"question": "What is FastAPI?"}
+```
+
+The response will look like:
+
+```json
+{"answer": "FastAPI is ..."}
+```
+
+To select a different Groq model, change `GROQ_MODEL` to a model available to your Groq account, then restart the app.
+
 ### Step 3: Website Data Ingestion
 
 **Tasks:**

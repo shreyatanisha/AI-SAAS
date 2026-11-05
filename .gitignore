@@ -1,0 +1,10 @@
+#add files to ignore
+.env
+venv
+
+
+
+
+
+
+
