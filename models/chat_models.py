@@ -7,7 +7,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
-    
+ 
+ 
+class WebsiteRequest(BaseModel):
+    url: str
+   
     
     
     
