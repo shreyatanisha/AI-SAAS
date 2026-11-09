@@ -5,22 +5,25 @@ from app.models.chat_models import ChatRequest, ChatResponse, WebsiteIngestionRe
 from app.services.llm_services import generate_answer
 from app.services.website_ingestion import crawl_website
 
-app = FastAPI()
+app = FastAPI(
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json"
+)
 
 
-@app.get("/")
+@app.get("/api/health")
 def read_root():
     return {"status": "healthy"}
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
     
         answer = generate_answer(request.question)
     
         return ChatResponse(answer=answer)
     
-@app.post("/ingest-website")
+@app.post("/api/ingest-website")
 def ingest_website(request: WebsiteIngestionRequest):
 
     try:
@@ -43,7 +46,7 @@ def ingest_website(request: WebsiteIngestionRequest):
             detail=f"Unable to fetch website: {str(error)}"
         )
         
-@app.post("/upload-document")
+@app.post("/api/upload-document")
 async def upload_document(file: UploadFile = File(...)):
 
     try:

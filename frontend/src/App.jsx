@@ -42,13 +42,13 @@ function App() {
             {t.icon} {t.label}
           </button>
         ))}
-      </nav>
+      </nav> 
 
       <main className="content">
         {tab === "chat" && <ChatPanel />}
         {tab === "website" && <WebsitePanel />}
         {tab === "document" && <DocumentPanel />}
-      </main>
+      </main> 
     </div>
   );
 }
