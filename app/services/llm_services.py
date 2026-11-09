@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from groq import Groq
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()  #Load environment variables from .env file
 client = Groq()
 
 
