@@ -20,7 +20,7 @@ async function handle(response) {
 }
 
 export async function checkHealth() {
-  return handle(await fetch(`${BASE}/`));
+  return handle(await fetch(`${BASE}/health`));
 }
 
 export async function sendChat(question) {
