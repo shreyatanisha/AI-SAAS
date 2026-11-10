@@ -23,12 +23,15 @@ export async function checkHealth() {
   return handle(await fetch(`${BASE}/health`));
 }
 
-export async function sendChat(question) {
+export async function sendChat(question, sessionId) {
   return handle(
     await fetch(`${BASE}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({
+        question,
+        session_id: sessionId,
+      }),
     })
   );
 }
