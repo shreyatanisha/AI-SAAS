@@ -11,6 +11,7 @@ function ChatPanel() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionId] = useState(() => crypto.randomUUID());
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ function ChatPanel() {
     setLoading(true);
 
     try {
-      const data = await sendChat(question);
+      const data = await sendChat(question, sessionId);
       setMessages((prev) => [...prev, { role: "assistant", text: data.answer }]);
     } catch (err) {
       setMessages((prev) => [...prev, { role: "error", text: err.message }]);
