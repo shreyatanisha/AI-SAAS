@@ -37,3 +37,9 @@ def generate_rag_answer(question: str, session_id: str):
     )
 
     return answer
+
+
+
+
+
+

@@ -19,10 +19,8 @@ def read_root():
 
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    
-        answer = generate_rag_answer(request.question)
-    
-        return ChatResponse(answer=answer)
+    answer = generate_rag_answer(request.question, request.session_id)
+    return ChatResponse(answer=answer, session_id=request.session_id)
     
 @app.post("/api/ingest-website")
 def ingest_website(request: WebsiteIngestionRequest):
