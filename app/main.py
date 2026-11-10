@@ -5,12 +5,22 @@ from app.models.chat_models import ChatRequest, ChatResponse, WebsiteIngestionRe
 from app.services.rag_service import generate_rag_answer
 from app.services.website_ingestion import crawl_website
 from app.vector_db.vector_store import store_document
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     docs_url="/api/docs",
     openapi_url="/api/openapi.json"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://ai-saas-eta-dusky.vercel.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/api/health")
 def read_root():
