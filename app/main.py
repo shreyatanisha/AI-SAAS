@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from app.services.document_ingestion import extract_document_text
 import requests
@@ -6,6 +8,8 @@ from app.services.rag_service import generate_rag_answer
 from app.services.website_ingestion import crawl_website
 from app.vector_db.vector_store import store_document
 from fastapi.middleware.cors import CORSMiddleware
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     docs_url="/api/docs",
@@ -30,8 +34,17 @@ def read_root():
 
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    answer = generate_rag_answer(request.question, request.session_id)
-    return ChatResponse(answer=answer, session_id=request.session_id)
+    try:
+        answer = generate_rag_answer(request.question, request.session_id)
+        return ChatResponse(answer=answer, session_id=request.session_id)
+    except HTTPException:
+        raise
+    except Exception as error:
+        logger.exception("Chat request failed")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to generate a chat response. Please try again.",
+        ) from error
     
 @app.post("/api/ingest-website")
 def ingest_website(request: WebsiteIngestionRequest):
