@@ -103,6 +103,19 @@ The response will look like:
 
 To select a different Groq model, change `GROQ_MODEL` to a model available to your Groq account, then restart the app.
 
+### Deploying to Vercel
+
+The local `.env` file is not deployed. In the Vercel project, add these environment variables under **Settings → Environment Variables**, then redeploy:
+
+| Variable | Required for |
+|---|---|
+| `GROQ_API_KEY` | Generating chat answers |
+| `QDRANT_URL` | Retrieving and storing knowledge |
+| `QDRANT_API_KEY` | Connecting to Qdrant Cloud |
+| `GROQ_MODEL` | Optional; defaults to `openai/gpt-oss-20b` |
+
+Make sure the required variables are enabled for the deployment environment (Production, Preview, or both). The frontend and API share a Vercel domain through the rewrites in `vercel.json`, so `VITE_API_URL` should normally be left unset. The API returns a `503` with the missing variable name if a required setting is absent.
+
 ### Step 3: Website Data Ingestion
 
 **Tasks:**

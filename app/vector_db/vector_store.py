@@ -8,8 +8,6 @@ from app.services.text_chunking import split_text_into_chunks
 
 def get_vector_store():
 
-    load_dotenv()
-
     client = QdrantClient(
         url=os.getenv("QDRANT_URL"),
         api_key=os.getenv("QDRANT_API_KEY")
@@ -65,7 +63,6 @@ if __name__ == "__main__":
     total = store_document(sample_document)
 
     print("Successfully stored chunks:", total)
-
 
 
 

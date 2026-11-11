@@ -3,8 +3,6 @@ from groq import Groq
 
 load_dotenv()  #Load environment variables from .env file
 client = Groq()
-
-
 # while True:
     
 #     user_question = input("User: ")
