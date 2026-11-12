@@ -32,6 +32,3 @@ if __name__ == "__main__":
 
     print("Embedding dimensions:", len(vector))
     print("First 5 values:", vector[:5])
-
-
-
