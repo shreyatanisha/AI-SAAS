@@ -8,9 +8,7 @@ beautifulsoup4
 python-multipart
 pypdf
 langchain-text-splitters
-langchain-huggingface
-sentence-transformers
 langchain-qdrant
 qdrant-client
-
-
+fastembed
+langchain-community
