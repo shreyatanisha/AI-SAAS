@@ -63,8 +63,8 @@ if __name__ == "__main__":
     total = store_document(sample_document)
 
     print("Successfully stored chunks:", total)
-
-
-
-
-
+    
+    
+    
+    
+    

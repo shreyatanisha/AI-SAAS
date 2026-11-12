@@ -59,11 +59,14 @@ def ingest_website(request: WebsiteIngestionRequest):
         for page in pages_content:
             total_chunks += store_document(page)
 
+        
         return {
             "message": "Website ingestion completed successfully!",
             "total_pages": len(pages_content),
-            "total_chunks_stored": total_chunks
+            "total_chunks_stored": total_chunks,
+            "pages": pages_content
         }
+
 
     except requests.RequestException as error:
         raise HTTPException(
@@ -90,10 +93,15 @@ async def upload_document(file: UploadFile = File(...)):
         total_chunks = store_document(document)
 
         return {
-            "message": "Document uploaded and stored successfully!",
-            "filename": document["filename"],
-            "total_chunks_stored": total_chunks
-        }
+    "message": "Document uploaded and stored successfully!",
+    "filename": document["filename"],
+    "total_chunks_stored": total_chunks,
+    "document": {
+        "filename": document["filename"],
+        "content": document["content"],
+        "source_type": document.get("source_type", "document")
+    }
+}
 
     except ValueError as error:
         raise HTTPException(

@@ -1,5 +1,4 @@
-from langchain_huggingface import HuggingFaceEmbeddings
-
+from langchain_community.embeddings import FastEmbedEmbeddings
 
 _embeddings = None
 
@@ -7,8 +6,10 @@ _embeddings = None
 def get_embeddings():
     global _embeddings
     if _embeddings is None:
-        _embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        _embeddings = FastEmbedEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2",
+            batch_size=16,
+            threads=1
         )
     return _embeddings
 
@@ -25,7 +26,6 @@ def embed_text_chunks(chunks: list[str]):
     return get_embeddings().embed_documents(chunks)
 
 if __name__ == "__main__":
-
     question = "What services does our company provide?"
 
     vector = generate_embeddings(question)
