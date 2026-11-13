@@ -19,8 +19,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://ai-saas-eta-dusky.vercel.app",
-        "https://ai-saas-3r9dt4zsc-web-service2.vercel.app/"
+        "https://ai-saas-eta-dusky.vercel.app"
+        
     ],
     allow_credentials=True,
     allow_methods=["*"],
