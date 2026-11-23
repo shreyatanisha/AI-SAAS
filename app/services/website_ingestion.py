@@ -4,10 +4,33 @@ import re
 
 from bs4 import BeautifulSoup
 
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urldefrag
 
 from collections import deque
 
+
+def normalize_url(url: str):
+    url = url.strip()
+
+    # Remove URL fragments such as #contact
+    url, _ = urldefrag(url)
+
+    parsed = urlparse(url)
+
+    # Remove trailing slash, except for the website root
+    path = parsed.path.rstrip("/")
+
+    if not path:
+        path = "/"
+
+    # Standardize the URL
+    normalized_url = parsed._replace(
+        scheme=parsed.scheme.lower(),
+        netloc=parsed.netloc.lower(),
+        path=path
+    ).geturl()
+
+    return normalized_url
 
 # ----------------------------------
 # 1. DOWNLOAD A WEBPAGE
@@ -62,27 +85,29 @@ def extract_links(html: str):
 # ----------------------------------
 
 def filter_internal_links(base_url: str, links: list):
-
     internal_links = []
 
     base_domain = urlparse(base_url).hostname
 
+    excluded_extensions = (
+        ".jpg", ".jpeg", ".png", ".gif", ".webp",
+        ".svg", ".pdf", ".zip", ".mp4", ".mp3",
+        ".css", ".js", ".ico"
+    )
+
     for link in links:
-
         full_url = urljoin(base_url, link)
-
         parsed_url = urlparse(full_url)
 
         if (
             parsed_url.scheme in ("http", "https")
             and parsed_url.hostname == base_domain
+            and not parsed_url.path.lower().endswith(excluded_extensions)
         ):
-
             internal_links.append(full_url)
 
     return internal_links
-
-
+        
 # ----------------------------------
 # 4. EXTRACT TEXT FROM HTML
 # ----------------------------------
@@ -92,11 +117,9 @@ def extract_text(html: str):
     soup = BeautifulSoup(html, "html.parser")
 
     unwanted_tags = [
-        "nav",
-        "footer",
-        "script",
-        "style"
-    ]
+    "script",
+    "style"
+]
 
     for tag in unwanted_tags:
 
@@ -121,6 +144,53 @@ def extract_title(html: str):
 
     return "Untitled Page"
 
+
+def extract_contact_info(html: str):
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    emails = set()
+    phone_numbers = set()
+
+    # Extract email and telephone links
+    for link in soup.find_all("a", href=True):
+
+        href = link["href"].strip()
+
+        if href.lower().startswith("mailto:"):
+            email = href[7:].split("?")[0].strip()
+            if email:
+                emails.add(email)
+
+        elif href.lower().startswith("tel:"):
+            phone = href[4:].strip()
+            if phone:
+                phone_numbers.add(phone)
+
+    # Extract email addresses from visible website text
+    page_text = soup.get_text(" ", strip=True)
+
+    found_emails = re.findall(
+        r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}',
+        page_text
+    )
+
+    emails.update(found_emails)
+
+    # Extract phone numbers from visible website text
+    found_phones = re.findall(
+        r'(?<!\w)(?:\+?\d[\d\s().-]{7,}\d)(?!\w)',
+        page_text
+    )
+
+    phone_numbers.update(found_phones)
+
+    return {
+        "emails": sorted(emails),
+        "phone_numbers": sorted(phone_numbers)
+    }
+
+
 def clean_text(text: str):
 
     text = re.sub(r"\s+", " ", text)
@@ -134,17 +204,17 @@ def clean_text(text: str):
 # 5. CRAWL MULTIPLE WEBSITE PAGES
 # ----------------------------------
 
-def crawl_website(start_url: str, max_pages: int = 10):
+def crawl_website(start_url: str, max_pages: int = None):
 
-    queue = deque([start_url])
+    queue = deque([normalize_url(start_url)])
 
     visited = set()
 
     pages_content = []
 
-    while len(queue) > 0 and len(visited) < max_pages:
+    while len(queue) > 0 and (max_pages is None or len(visited) < max_pages):
 
-        current_url = queue.popleft()
+        current_url = normalize_url(queue.popleft())
 
         if current_url in visited:
 
@@ -154,42 +224,55 @@ def crawl_website(start_url: str, max_pages: int = 10):
 
         print("Crawling:", current_url)
 
-        html = fetch_page(current_url)
+        try:
+            html = fetch_page(current_url)
+        except requests.RequestException as error:
+            print(f"Failed to crawl {current_url}: {error}")
+            continue
 
         title = extract_title(html)
-
         page_text = extract_text(html)
-
         cleaned_text = clean_text(page_text)
 
-        page_data = {
-           "url": current_url,
-           "title": title,
-           "content": cleaned_text,
-           "source_type": "website"
-        }
+        # Extract contact information and add it to searchable content.
+        contact_info = extract_contact_info(html)
+        contact_text = ""
 
+        if contact_info["emails"] or contact_info["phone_numbers"]:
+            contact_text = "\n\nCompany Contact Information:\n"
+
+            if contact_info["emails"]:
+                contact_text += (
+                    "Email Addresses: "
+                    + ", ".join(contact_info["emails"])
+                    + "\n"
+                )
+
+            if contact_info["phone_numbers"]:
+                contact_text += (
+                    "Phone Numbers: "
+                    + ", ".join(contact_info["phone_numbers"])
+                    + "\n"
+                )
+
+        final_content = cleaned_text + contact_text
+        page_data = {
+            "url": current_url,
+            "title": title,
+            "content": final_content,
+            "source_type": "website",
+        }
         pages_content.append(page_data)
 
         links = extract_links(html)
-
-        internal_links = filter_internal_links(
-          current_url,
-          links
-        )
-        
+        internal_links = filter_internal_links(current_url, links)
 
         for link in internal_links:
-
-            if link not in visited:
-
-                if link not in queue:
-
-                    queue.append(link)
+            link = normalize_url(link)
+            if link not in visited and link not in queue:
+                queue.append(link)
 
     return pages_content
-
-
 # ----------------------------------
 # 6. TEST THE WEBSITE CRAWLER
 # ----------------------------------
@@ -198,46 +281,16 @@ if __name__ == "__main__":
 
     start_url = "https://crushaderstech.com/"
 
-    max_pages = 10
+    from app.vector_db.vector_store import store_document
 
-    pages_content = crawl_website(
-        start_url,
-        max_pages
-    )
+    pages = crawl_website(start_url, max_pages=None)
+
+    total_chunks = 0
+
+    for page in pages:
+        total_chunks += store_document(page)
 
     print("\nCrawling completed!")
-
-    print("Maximum pages allowed:", max_pages)
-
-    print("Total pages collected:", len(pages_content))
-
-    print("\nExtracted Website Content:")
-
-    for page in pages_content:
-
-      print("Source URL:", page["url"])
-    
-      print("Page Title:", page["title"])
-
-      print("Content:", page["content"])
-
-      print("--------------------")
-        
-        
-# if __name__ == "__main__":
-
-#     sample_text = """
-#         Welcome     to     ABC Company.
-
-
-#         We provide       web development
-#         services.
-#     """
-
-#     cleaned_text = clean_text(sample_text)
-
-#     print("Original Text:")
-#     print(sample_text)
-
-#     print("\nCleaned Text:")
-#     print(cleaned_text)
+    print("Maximum pages allowed: no limit")
+    print("Total pages collected:", len(pages))
+    print("Total chunks stored:", total_chunks)

@@ -36,12 +36,12 @@ export async function sendChat(question, sessionId) {
   );
 }
 
-export async function ingestWebsite(url, maxPages) {
+export async function ingestWebsite(url) {
   return handle(
     await fetch(`${BASE}/ingest-website`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, max_pages: maxPages }),
+      body: JSON.stringify({ url }),
     })
   );
 }
@@ -50,4 +50,14 @@ export async function uploadDocument(file) {
   const form = new FormData();
   form.append("file", file);
   return handle(await fetch(`${BASE}/upload-document`, { method: "POST", body: form }));
+}
+
+export async function adminLogin(password) {
+  return handle(
+    await fetch(`${BASE}/admin/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    })
+  );
 }

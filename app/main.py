@@ -1,11 +1,13 @@
 import logging
+import os
 
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from app.services.document_ingestion import extract_document_text
 import requests
-from app.models.chat_models import ChatRequest, ChatResponse, WebsiteIngestionRequest
+from app.models.chat_models import ChatRequest, ChatResponse, WebsiteIngestionRequest, AdminLoginRequest
 from app.services.rag_service import generate_rag_answer
-from app.services.website_ingestion import crawl_website
+from app.memory.chat_memory import initialize_chat_table
+from app.services.website_ingestion import crawl_website, normalize_url
 from app.vector_db.vector_store import store_document
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,6 +18,10 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
+@app.on_event("startup")
+def startup_event():
+    initialize_chat_table()
+    
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -30,6 +36,14 @@ app.add_middleware(
 @app.get("/api/health")
 def read_root():
     return {"status": "healthy"}
+
+
+@app.post("/api/admin/login")
+def admin_login(request: AdminLoginRequest):
+    admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+    if request.password != admin_password:
+        raise HTTPException(status_code=401, detail="Invalid admin password")
+    return {"message": "Login successful", "is_admin": True}
 
 
 @app.post("/api/chat", response_model=ChatResponse)
@@ -50,7 +64,7 @@ def chat(request: ChatRequest):
 def ingest_website(request: WebsiteIngestionRequest):
     try:
         pages_content = crawl_website(
-            str(request.url),
+            normalize_url(str(request.url)),
             request.max_pages
         )
 

@@ -15,26 +15,8 @@ class ChatResponse(BaseModel):
  
 class WebsiteIngestionRequest(BaseModel):
     url: HttpUrl
-    max_pages: int = Field(default=10, ge=1, le=100)
-    
-    
-    
-    
-    
-    
-    
-   
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    max_pages: int | None = None
+
+
+class AdminLoginRequest(BaseModel):
+    password: str

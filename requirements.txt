@@ -8,7 +8,9 @@ beautifulsoup4
 python-multipart
 pypdf
 langchain-text-splitters
+langchain-core
 langchain-qdrant
 qdrant-client
 fastembed
 langchain-community
+psycopg[binary]
