@@ -6,7 +6,7 @@ from app.services.document_ingestion import extract_document_text
 import requests
 from app.models.chat_models import ChatRequest, ChatResponse, WebsiteIngestionRequest, AdminLoginRequest
 from app.services.rag_service import generate_rag_answer
-from app.memory.chat_memory import initialize_chat_table
+from app.memory.chat_memory import initialize_chat_table, initialize_leads_table
 from app.services.website_ingestion import crawl_website, normalize_url
 from app.vector_db.vector_store import store_document
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +21,7 @@ app = FastAPI(
 @app.on_event("startup")
 def startup_event():
     initialize_chat_table()
-    
+    initialize_leads_table()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
