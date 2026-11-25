@@ -82,6 +82,29 @@ def save_chat_message(session_id: str, question: str, answer: str):
                 INSERT INTO chat_history (session_id, question, answer)
                 VALUES (%s, %s, %s);
             """, (session_id, question, answer))
+                
 
+def initialize_leads_table():
+    with get_db_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS leads (
+                    id BIGSERIAL PRIMARY KEY,
+                    session_id VARCHAR(255) NOT NULL,
+                    name VARCHAR(255) NOT NULL,
+                    email VARCHAR(255),
+                    phone VARCHAR(50),
+                    company_name VARCHAR(255),
+                    service_required VARCHAR(255),
+                    requirements TEXT,
+                    status VARCHAR(50) NOT NULL DEFAULT 'new',
+                    consent BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
 
-
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_leads_session
+                ON leads (session_id);
+            """)
+           
